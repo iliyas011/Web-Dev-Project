@@ -1,0 +1,383 @@
+{
+  "info": {
+    "name": "MarketPlace Classifieds API",
+    "_postman_id": "classifieds-api-collection",
+    "description": "Full API collection for the MarketPlace classified ads backend.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8000/api" },
+    { "key": "token", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/auth/register/",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"alice\",\n  \"email\": \"alice@example.com\",\n  \"password\": \"securepass1\",\n  \"password_confirm\": \"securepass1\"\n}"
+            }
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "status": "Created",
+              "code": 201,
+              "body": "{\n  \"token\": \"abc123tokenvalue\",\n  \"user\": {\n    \"id\": 1,\n    \"username\": \"alice\",\n    \"email\": \"alice@example.com\",\n    \"date_joined\": \"2024-01-15T10:00:00Z\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.token) { pm.collectionVariables.set('token', json.token); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/auth/login/",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"alice\",\n  \"password\": \"securepass1\"\n}"
+            }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"token\": \"abc123tokenvalue\",\n  \"user\": { \"id\": 1, \"username\": \"alice\", \"email\": \"alice@example.com\", \"date_joined\": \"2024-01-15T10:00:00Z\" }\n}"
+            },
+            {
+              "name": "401 Invalid credentials",
+              "status": "Unauthorized",
+              "code": 401,
+              "body": "{\n  \"detail\": \"Invalid credentials.\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/auth/logout/",
+            "header": [{ "key": "Authorization", "value": "Token {{token}}" }]
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"detail\": \"Logged out successfully.\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/auth/me/",
+            "header": [{ "key": "Authorization", "value": "Token {{token}}" }]
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"id\": 1,\n  \"username\": \"alice\",\n  \"email\": \"alice@example.com\",\n  \"date_joined\": \"2024-01-15T10:00:00Z\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Categories",
+      "item": [
+        {
+          "name": "List All Categories",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/categories/"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "[\n  { \"id\": 1, \"name\": \"Electronics\", \"slug\": \"electronics\", \"description\": \"Phones, laptops, gadgets\", \"icon\": \"💻\", \"listing_count\": 42 },\n  { \"id\": 2, \"name\": \"Clothing\", \"slug\": \"clothing\", \"description\": \"Clothes and accessories\", \"icon\": \"👕\", \"listing_count\": 18 }\n]"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Listings",
+      "item": [
+        {
+          "name": "List All Active Listings",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/listings/"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "[\n  {\n    \"id\": 1,\n    \"title\": \"iPhone 13 Pro\",\n    \"description\": \"Used for 6 months, excellent condition.\",\n    \"price\": \"599.99\",\n    \"condition\": \"like_new\",\n    \"location\": \"San Francisco, CA\",\n    \"image_url\": \"https://example.com/iphone.jpg\",\n    \"is_sold\": false,\n    \"is_active\": true,\n    \"views_count\": 34,\n    \"created_at\": \"2024-01-20T09:00:00Z\",\n    \"updated_at\": \"2024-01-20T09:00:00Z\",\n    \"seller\": { \"id\": 1, \"username\": \"alice\", \"email\": \"alice@example.com\", \"date_joined\": \"2024-01-15T10:00:00Z\" },\n    \"category\": { \"id\": 1, \"name\": \"Electronics\", \"slug\": \"electronics\", \"description\": \"\", \"icon\": \"💻\", \"listing_count\": 42 },\n    \"is_favorited\": false\n  }\n]"
+            }
+          ]
+        },
+        {
+          "name": "Search Listings",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/listings/search/?q=iphone&category=electronics&condition=like_new&ordering=-price",
+              "query": [
+                { "key": "q", "value": "iphone" },
+                { "key": "category", "value": "electronics" },
+                { "key": "condition", "value": "like_new" },
+                { "key": "min_price", "value": "100" },
+                { "key": "max_price", "value": "1000" },
+                { "key": "ordering", "value": "-price" }
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "[\n  {\n    \"id\": 1,\n    \"title\": \"iPhone 13 Pro\",\n    \"price\": \"599.99\",\n    \"condition\": \"like_new\"\n  }\n]"
+            }
+          ]
+        },
+        {
+          "name": "Get Listing Detail",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/listings/1/"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"id\": 1,\n  \"title\": \"iPhone 13 Pro\",\n  \"description\": \"Used for 6 months, excellent condition.\",\n  \"price\": \"599.99\",\n  \"condition\": \"like_new\",\n  \"location\": \"San Francisco, CA\",\n  \"views_count\": 35,\n  \"is_favorited\": false\n}"
+            },
+            {
+              "name": "404 Not Found",
+              "status": "Not Found",
+              "code": 404,
+              "body": "{\n  \"detail\": \"Not found.\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Create Listing",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/listings/",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Token {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"MacBook Pro 14 M3\",\n  \"description\": \"Barely used, bought 3 months ago. Full warranty remaining.\",\n  \"price\": \"1899.00\",\n  \"condition\": \"like_new\",\n  \"location\": \"New York, NY\",\n  \"image_url\": \"https://example.com/macbook.jpg\",\n  \"category_id\": 1\n}"
+            }
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "status": "Created",
+              "code": 201,
+              "body": "{\n  \"id\": 2,\n  \"title\": \"MacBook Pro 14 M3\",\n  \"price\": \"1899.00\",\n  \"seller\": { \"id\": 1, \"username\": \"alice\" }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Update Listing",
+          "request": {
+            "method": "PUT",
+            "url": "{{base_url}}/listings/1/",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Token {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"price\": \"549.99\",\n  \"description\": \"Price reduced! Great deal.\"\n}"
+            }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"id\": 1,\n  \"title\": \"iPhone 13 Pro\",\n  \"price\": \"549.99\"\n}"
+            },
+            {
+              "name": "403 Forbidden",
+              "status": "Forbidden",
+              "code": 403,
+              "body": "{\n  \"detail\": \"Permission denied.\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Delete Listing",
+          "request": {
+            "method": "DELETE",
+            "url": "{{base_url}}/listings/1/",
+            "header": [{ "key": "Authorization", "value": "Token {{token}}" }]
+          },
+          "response": [
+            { "name": "204 No Content", "status": "No Content", "code": 204, "body": "" }
+          ]
+        },
+        {
+          "name": "Mark as Sold",
+          "request": {
+            "method": "PATCH",
+            "url": "{{base_url}}/listings/1/sold/",
+            "header": [{ "key": "Authorization", "value": "Token {{token}}" }]
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"detail\": \"Listing marked as sold.\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "My Listings",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/listings/my/",
+            "header": [{ "key": "Authorization", "value": "Token {{token}}" }]
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "[\n  { \"id\": 1, \"title\": \"iPhone 13 Pro\", \"price\": \"599.99\", \"is_sold\": false }\n]"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Messages",
+      "item": [
+        {
+          "name": "List Messages",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/messages/",
+            "header": [{ "key": "Authorization", "value": "Token {{token}}" }]
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "[\n  {\n    \"id\": 1,\n    \"listing\": 1,\n    \"listing_title\": \"iPhone 13 Pro\",\n    \"sender\": { \"id\": 2, \"username\": \"bob\" },\n    \"recipient\": { \"id\": 1, \"username\": \"alice\" },\n    \"body\": \"Hi, is this still available?\",\n    \"is_read\": false,\n    \"created_at\": \"2024-01-21T11:30:00Z\"\n  }\n]"
+            }
+          ]
+        },
+        {
+          "name": "Send Message",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/messages/",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Token {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"listing_id\": 1,\n  \"body\": \"Hi, is this still available? Would you accept $500?\"\n}"
+            }
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "status": "Created",
+              "code": 201,
+              "body": "{\n  \"id\": 2,\n  \"listing\": 1,\n  \"listing_title\": \"iPhone 13 Pro\",\n  \"sender\": { \"id\": 2, \"username\": \"bob\" },\n  \"recipient\": { \"id\": 1, \"username\": \"alice\" },\n  \"body\": \"Hi, is this still available? Would you accept $500?\",\n  \"is_read\": false,\n  \"created_at\": \"2024-01-22T08:00:00Z\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Favorites",
+      "item": [
+        {
+          "name": "List Favorites",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/favorites/",
+            "header": [{ "key": "Authorization", "value": "Token {{token}}" }]
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "[\n  {\n    \"id\": 1,\n    \"listing\": { \"id\": 2, \"title\": \"MacBook Pro 14 M3\", \"price\": \"1899.00\" },\n    \"created_at\": \"2024-01-22T09:00:00Z\"\n  }\n]"
+            }
+          ]
+        },
+        {
+          "name": "Toggle Favorite (Add)",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/favorites/",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Token {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"listing_id\": 2\n}"
+            }
+          },
+          "response": [
+            {
+              "name": "201 Added",
+              "status": "Created",
+              "code": 201,
+              "body": "{\n  \"detail\": \"Added to favorites.\",\n  \"favorited\": true\n}"
+            },
+            {
+              "name": "200 Removed",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"detail\": \"Removed from favorites.\",\n  \"favorited\": false\n}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
