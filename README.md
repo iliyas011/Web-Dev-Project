@@ -9,7 +9,7 @@ Khydyr Tabyngalyew
 Zhuzzhigit Er-Sultan
 
 # Project Structure
-classifieds/
+classifieds/                                                                                                                            
 ├── ads (backend)/ Django                                                                                                               
 ├── frontend/                 Angular 17                                                                                                
 └── MarketPlace_API.json  #Postman                                                                                                      
